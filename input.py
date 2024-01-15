@@ -20,12 +20,16 @@ def main_loop():
         window = cv2.cvtColor(
             np.array(ImageGrab.grab(bbox=(0, 50, 1280, 720))), cv2.COLOR_BGR2RGB
         )
-        # print(time.process_time() - t)
-        t = time.process_time()
 
-        print(get_speed(window))
+        speed = get_speed(window)
+
+        # анализ картинки
+        # предсказание
+        # выбор действия
 
         # cv2.imshow("frame", cv2.cvtColor(window, cv2.COLOR_BGR2RGB))
+        print(time.process_time() - t)
+        t = time.process_time()
         if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
             break
@@ -38,7 +42,7 @@ def get_speed(img):
         int(height / 1.52) : int(height / 1.52) + 85,
         int(width / 1.93) : int(width / 1.93) + 60,
     ]
-    acceleration_img = speed_frame
+    # acceleration_img = speed_frame
 
     lower_red = np.array([100, 222, 222])
     upper_red = np.array([235, 245, 245])
