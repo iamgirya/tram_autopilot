@@ -13,6 +13,9 @@ develop-eggs/
 dist/
 downloads/
 eggs/
+datasets/
+runs/
+trash/
 .eggs/
 lib/
 lib64/
@@ -151,3 +154,4 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 *.mp4
+yolov8n.pt
