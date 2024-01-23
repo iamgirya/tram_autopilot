@@ -13,6 +13,9 @@ develop-eggs/
 dist/
 downloads/
 eggs/
+datasets/
+runs/
+trash/
 .eggs/
 lib/
 lib64/
