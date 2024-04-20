@@ -22,9 +22,11 @@ def set_up_camera():
     sleep(1)
     keyboard.press("3")
     sleep(0.15)
+    keyboard.release("3")
     keyboard.press("space")
-    keyboard.press("space")
-    sleep(0.3)
+    sleep(0.15)
+    keyboard.release("space")
+    sleep(0.15)
     mouse.right_click()
     keyboard.press("up")
     sleep(0.67)
@@ -39,4 +41,5 @@ def set_up_camera():
     mouse.right_click()
 
 
-set_up_camera()
+def init_output():
+    keyboard.add_hotkey("ctrl+w", lambda: set_up_camera())

@@ -16,7 +16,9 @@ def use_yolo(frame, model: YOLO):
     frame = np.array(frame)
 
     # speed = get_speed(window)
-    results = model.predict(source=frame, save=False)  # save plotted images
+    results = model.predict(
+        source=frame, save=False, verbose=False
+    )  # save plotted images
     for r in results:
         annotator = Annotator(frame)
         boxes = r.boxes
@@ -37,7 +39,3 @@ def use_yolo(frame, model: YOLO):
 
     # print(time.process_time() - t)
     # t = time.process_time()
-
-
-# предсказание
-# выбор действия
