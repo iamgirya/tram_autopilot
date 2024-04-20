@@ -19,6 +19,11 @@ def move_mouse(dx, dy):
 
 
 def set_up_camera():
+    sleep(1)
+    keyboard.press("3")
+    sleep(0.15)
+    keyboard.press("space")
+    keyboard.press("space")
     sleep(0.3)
     mouse.right_click()
     keyboard.press("up")
@@ -30,7 +35,6 @@ def set_up_camera():
     sleep(0.403)
     keyboard.release("up")
     move_mouse(1052, 0)
-    move_mouse(0, 350)
     sleep(0.05)
     mouse.right_click()
 

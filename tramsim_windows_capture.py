@@ -3,6 +3,7 @@ from time import sleep, time
 import numpy as np
 import cv2
 import threading
+import yolo_video_predict
 
 # Every Error From on_closed and on_frame_arrived Will End Up Here
 capture = WindowsCapture(
@@ -41,14 +42,16 @@ def on_closed():
 
 
 bg = 0
+model = yolo_video_predict.init_yolo()
 capture.start_free_threaded()
 sleep(1)
 while True:
     sleep(0)
     # Короче, тут происходит потеря данных при передаче между потоками данных. Пиздец
     lock.acquire()
-    cv2.imwrite("trash\lol2.bmp", frameg)
-    cv2.imshow("lol", frameg)
+    yolo_frame = yolo_video_predict.use_yolo(frameg, model)
+    # cv2.imwrite("trash\lol2.bmp", frameg)
+    cv2.imshow("yolo_frame", yolo_frame)
     lock.release()
     if cv2.waitKey(1) & 0xFF == ord("q"):
         cv2.destroyAllWindows()
