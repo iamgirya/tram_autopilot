@@ -5,6 +5,7 @@ import cv2
 import threading
 import yolo_predict
 import output
+import speed_from_image_parser
 
 # Every Error From on_closed and on_frame_arrived Will End Up Here
 capture = WindowsCapture(
@@ -43,18 +44,34 @@ def on_closed():
 
 
 def main_loop():
+    framegId = 0
+    yolo_frame = yolo_predict.use_yolo(frameg, model)
+
+    output.open_cabine_view()
+    sleep(0.1)
+    # TODO сейчас просто на верим, что за н-ное время кадр успел смениться. Но так плохо делать
+    speed_value = speed_from_image_parser.get_speed(frameg)
+    output.open_nose_view()
+
     while True:
-        # sleep(0)
+        framegId += 1
         # Короче, тут происходит потеря данных при передаче между потоками данных при записи
         # 1. Сбор данных
         lock.acquire()
-        yolo_frame = yolo_predict.use_yolo(frameg, model)
-        # get_speed...
+        if framegId < 10:
+            yolo_frame = yolo_predict.use_yolo(frameg, model)
+        else:
+            output.open_cabine_view()
+            sleep(0.1)
+            speed_value = speed_from_image_parser.get_speed(frameg)
+            output.open_nose_view()
+            framegId = 0
 
-        # cv2.imwrite("trash\lol2.bmp", frameg)
         cv2.imshow("yolo_frame", yolo_frame)
-        # предсказание
-        # выбор действия
+        print(speed_value)
+
+        # 2. Предсказание
+        # 3. Выбор действия
 
         lock.release()
         if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -65,5 +82,7 @@ def main_loop():
 # Код
 model = yolo_predict.init_yolo()
 output.init_output()
+output.set_up_camera()
 capture.start_free_threaded()
+sleep(0.5)
 main_loop()

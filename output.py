@@ -18,6 +18,18 @@ def move_mouse(dx, dy):
     )
 
 
+def open_cabine_view():
+    keyboard.press("1")
+    sleep(0.05)
+    keyboard.release("1")
+
+
+def open_nose_view():
+    keyboard.press("3")
+    sleep(0.05)
+    keyboard.release("3")
+
+
 def set_up_camera():
     sleep(1)
     keyboard.press("3")
