@@ -38,9 +38,12 @@ def get_speed(frame):
     img = np.array(frame)
     height, width, _ = img.shape
 
+    height_const = 1.42
+    width_const = 1.91
+
     speed_frame = img[
-        int(height / 1.52) : int(height / 1.52) + 85,
-        int(width / 1.93) : int(width / 1.93) + 60,
+        int(height / height_const) : int(height / height_const) + 97,
+        int(width / width_const) : int(width / width_const) + 90,
     ]
 
     lower_color = np.array([100, 222, 222])
@@ -56,6 +59,7 @@ def get_speed(frame):
                 count += 1
 
     count *= 0.2675
+    count /= 4.0 * 10.0 / 7
 
     cv2.imshow("speed", speed_frame)
     # cv2.imshow("speed_detected", speed_img)
