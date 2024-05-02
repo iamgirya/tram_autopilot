@@ -9,7 +9,7 @@ import time
 
 def init_yolo():
     time.process_time()
-    return YOLO("yolov8n.pt")
+    return YOLO("yolov8n_v2.pt")
 
 
 def use_yolo(frame, model: YOLO):

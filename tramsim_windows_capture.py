@@ -28,6 +28,7 @@ def on_frame_arrived(frame: Frame, capture_control: InternalCaptureControl):
     # print("New Frame Arrived " + str(time() - time1))
     # time1 = time()
 
+    # Тут происходит потеря данных при передаче между потоками данных при записи в файл, но на видео всё норм
     # frame.save_as_image("lol1.jpg")
     # Save The Frame As An Image To The Specified Path
     lock.acquire()
@@ -44,6 +45,13 @@ def on_closed():
 
 
 def main_loop():
+    # 0. Инициализация
+    model = yolo_predict.init_yolo()
+    output.init_output()
+    output.set_up_camera()
+    capture.start_free_threaded()
+    sleep(0.5)
+
     framegId = 0
     yolo_frame = yolo_predict.use_yolo(frameg, model)
 
@@ -55,7 +63,6 @@ def main_loop():
 
     while True:
         framegId += 1
-        # Короче, тут происходит потеря данных при передаче между потоками данных при записи
         # 1. Сбор данных
         lock.acquire()
         if framegId < 10:
@@ -80,9 +87,4 @@ def main_loop():
 
 
 # Код
-model = yolo_predict.init_yolo()
-output.init_output()
-output.set_up_camera()
-capture.start_free_threaded()
-sleep(0.5)
 main_loop()
