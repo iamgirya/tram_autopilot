@@ -53,7 +53,7 @@ def main_loop():
     sleep(0.5)
 
     framegId = 0
-    yolo_frame = yolo_predict.use_yolo(frameg, model)
+    yolo_frame = yolo_predict.use_yolo_with_annotator(frameg, model)
 
     output.open_cabine_view()
     sleep(0.1)
@@ -66,7 +66,7 @@ def main_loop():
         # 1. Сбор данных
         lock.acquire()
         if framegId < 10:
-            yolo_frame = yolo_predict.use_yolo(frameg, model)
+            yolo_frame = yolo_predict.use_yolo_with_annotator(frameg, model)
         else:
             output.open_cabine_view()
             sleep(0.1)
@@ -77,8 +77,9 @@ def main_loop():
         cv2.imshow("yolo_frame", yolo_frame)
         print(speed_value)
 
-        # 2. Предсказание
-        # 3. Выбор действия
+        # 2. Создание модели
+        # 3. Обновление модели
+        # 4. Выбор действия
 
         lock.release()
         if cv2.waitKey(1) & 0xFF == ord("q"):

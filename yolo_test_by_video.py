@@ -15,7 +15,7 @@ def main_loop():
         ret, frameg = cap.read()
         if not ret:
             exit()
-        yolo_frame = yolo_predict.use_yolo(frameg, model)
+        world, yolo_frame = yolo_predict.use_yolo_with_model(frameg, model, True)
         cv2.imshow("yolo_frame", yolo_frame)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
