@@ -48,49 +48,18 @@ def on_closed():
 
 
 def main_loop():
-    # 0. Инициализация
-    model = yolo_predict.init_yolo()
-    framegId = 0
-    output.init_output()
-    output.set_up_camera()
     capture.start_free_threaded()
-    sleep(0.5)
-
-    output.open_cabine_view()
     sleep(0.1)
-    # TODO сейчас просто на верим, что за н-ное время кадр успел смениться. Но так плохо делать
-    speed_value = speed_from_image_parser.get_speed(frameg)
-    output.open_nose_view()
 
     while True:
         if GetWindowText(GetForegroundWindow()) != "TramSim  ":
             sleep(1)
             continue
 
-        framegId += 1
-        # 1. Сбор данных и получение модели
         lock.acquire()
-        if framegId <= 10:
-            world_model, yolo_frame = yolo_predict.use_yolo_with_model(
-                frameg, model, need_annotation=True
-            )
-        else:
-            lock.release()
-            output.open_cabine_view()
-            sleep(0.2)
-            speed_value = speed_from_image_parser.get_speed(frameg)
-            output.open_nose_view()
-            framegId = 0
-            lock.acquire()
-
-        # cv2.imshow("yolo_frame", yolo_frame)
-
+        sleep(0.2)
+        speed_value = speed_from_image_parser.get_speed(frameg)
         print("speed = " + str(speed_value))
-        # 2. Принятие решения
-        state = decision_module.make_decision(world_model, speed_value)
-        print("state = " + str(state))
-        # 3. Реализация решения
-        output.implementation_of_decision(state, speed_value)
 
         lock.release()
         if cv2.waitKey(1) & 0xFF == ord("q"):

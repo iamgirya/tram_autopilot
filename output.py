@@ -16,10 +16,12 @@ def move_mouse(dx, dy):
 
 
 def press(key: str):
+    print(key)
     keyboard.press_and_release(key)
 
 
 def long_press(key: str, time=0.1):
+    print(key)
     keyboard.press(key)
     sleep(time)
     keyboard.release(key)
@@ -61,14 +63,14 @@ acceleration_level = 0
 
 def implementation_of_decision(state, speed):
     global acceleration_level
-    lower_move_speed = 25
-    upper_move_speed = 30
+    lower_move_speed = 10
+    upper_move_speed = 15
 
     if state == TramState.move:
         if lower_move_speed <= speed <= upper_move_speed:
             press("a")
             acceleration_level = 0
-        elif lower_move_speed > speed:
+        elif lower_move_speed > speed and acceleration_level < 20:
             long_press("q")
             acceleration_level += 1
         elif speed > upper_move_speed:
@@ -98,10 +100,12 @@ def implementation_of_decision(state, speed):
             long_press("y", 1)
             sleep(1)
         sleep(0.5)
-        press("num1")
+        press("num 1")
         sleep(30)
-        press("num3")
+        press("num 3")
         sleep(3)
+        press("a")
+        acceleration_level = 0
     elif state == TramState.fast_stop:
         # TODO аварийный тормоз заюзать?
         if speed != 0:
@@ -113,3 +117,5 @@ def implementation_of_decision(state, speed):
         else:
             press("a")
             acceleration_level = 0
+
+    print("acceleration_level = " + str(acceleration_level))

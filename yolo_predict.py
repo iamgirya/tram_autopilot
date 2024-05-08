@@ -94,7 +94,7 @@ def get_signal_from_stoplight_image(frame, bbox):
     width = abs(left - right)
     height = abs(top - bottom)
 
-    cv2.imshow("signal frame", signal_frame)
+    # cv2.imshow("signal frame", signal_frame)
 
     if width == 0 or height == 0:
         return False
