@@ -78,7 +78,9 @@ def main_loop():
         cv2.imshow("yolo_frame", yolo_frame)
 
         # 2. Принятие решения
-        world_model, speed_value
+        state = decision_module.make_decision(world_model, speed_value)
+        # 3. Реализация решения
+        output.implementation_of_decision(state)
 
         lock.release()
         if cv2.waitKey(1) & 0xFF == ord("q"):

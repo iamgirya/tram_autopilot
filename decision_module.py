@@ -29,25 +29,24 @@ def make_decision(new_model: YoloWorldModel, speed: float):
         prev_state = tram_state
         return tram_state
 
-    # Чекаем, нужно ли резко остановиться
-    if len(new_model.obstacles) != 0 and (
-        prev_state == TramState.move or prev_state == TramState.fast_stop
-    ):
+    def check_obstacles():
         for obstacle in new_model.obstacles:
             range_to_obstacle = math.sqrt(
                 obstacle.x * obstacle.x + obstacle.y * obstacle.y
             )
             if abs(obstacle.x) <= 1 and range_to_obstacle <= 1.5:
-                tram_state = TramState.fast_stop
-                return end_make_decision()
+                return True
+        return False
 
     # если трамвай ехал
     if prev_state == TramState.move:
+        if check_obstacles():
+            tram_state = TramState.fast_stop
         # и увидел кружок остановки
-        if new_model.range_to_stop != None:
+        elif new_model.range_to_stop != None:
             tram_state = TramState.stop
         # и увидел светофор с сигналом остановки
-        if new_model.range_to_stoplight != None and new_model.stoplight_signal:
+        elif new_model.range_to_stoplight != None and new_model.stoplight_signal:
             tram_state = TramState.stop
     # если трамвай останавливался
     elif prev_state == TramState.stop:
@@ -55,7 +54,7 @@ def make_decision(new_model: YoloWorldModel, speed: float):
         if prev_model.range_to_stop != None and new_model.range_to_stop == None:
             tram_state = TramState.boarding
         # и успел остановиться
-        if speed <= 1:
+        elif speed <= 1:
             tram_state = TramState.wait
     # если трамвай ждёт
     elif prev_state == TramState.wait:
@@ -68,6 +67,9 @@ def make_decision(new_model: YoloWorldModel, speed: float):
         tram_state = TramState.wait
     # если трамвай резко остановился и больше этого не требуется
     elif prev_state == TramState.fast_stop:
-        tram_state = TramState.wait
+        if check_obstacles():
+            tram_state = TramState.fast_stop
+        elif speed == 0:
+            tram_state = TramState.wait
 
     return end_make_decision()
