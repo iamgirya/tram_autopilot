@@ -6,6 +6,7 @@ import threading
 import yolo_predict
 import output
 import speed_from_image_parser
+import decision_module
 
 # Every Error From on_closed and on_frame_arrived Will End Up Here
 capture = WindowsCapture(
@@ -47,13 +48,11 @@ def on_closed():
 def main_loop():
     # 0. Инициализация
     model = yolo_predict.init_yolo()
+    framegId = 0
     output.init_output()
     output.set_up_camera()
     capture.start_free_threaded()
     sleep(0.5)
-
-    framegId = 0
-    yolo_frame = yolo_predict.use_yolo_with_annotator(frameg, model)
 
     output.open_cabine_view()
     sleep(0.1)
@@ -63,10 +62,12 @@ def main_loop():
 
     while True:
         framegId += 1
-        # 1. Сбор данных
+        # 1. Сбор данных и получение модели
         lock.acquire()
-        if framegId < 10:
-            yolo_frame = yolo_predict.use_yolo_with_annotator(frameg, model)
+        if framegId <= 10:
+            world_model, yolo_frame = yolo_predict.use_yolo_with_model(
+                frameg, model, need_annotation=True
+            )
         else:
             output.open_cabine_view()
             sleep(0.1)
@@ -75,11 +76,9 @@ def main_loop():
             framegId = 0
 
         cv2.imshow("yolo_frame", yolo_frame)
-        print(speed_value)
 
-        # 2. Создание модели
-        # 3. Обновление модели
-        # 4. Выбор действия
+        # 2. Принятие решения
+        world_model, speed_value
 
         lock.release()
         if cv2.waitKey(1) & 0xFF == ord("q"):

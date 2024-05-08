@@ -147,8 +147,8 @@ def use_yolo_with_model(frame, model: YOLO, need_annotation: bool):
 
                 # получили полярные коррдинаты angle, distance, переводим в декартовы
                 new_obstacle = YoloObstacle()
-                new_obstacle.x = distance * math.cos(angle)
-                new_obstacle.y = distance * math.sin(angle)
+                new_obstacle.x = distance * math.cos(angle + math.pi / 4)
+                new_obstacle.y = distance * math.sin(angle + math.pi / 4)
                 new_obstacle.name = box_name
                 new_obstacle.xyxy = box_borders
                 world_model.obstacles.append(new_obstacle)
@@ -165,6 +165,7 @@ def use_yolo_with_model(frame, model: YOLO, need_annotation: bool):
                     (frame.shape[0] - box_borders[3]) / frame.shape[0] * 100
                 )
                 world_model.range_to_stop = distance_to_end
+                # TODO сделать защиту от определения жёлтого треугольника и прочей фигни
 
                 if need_annotation:
                     annotator.box_label(
@@ -203,4 +204,4 @@ def use_yolo_with_model(frame, model: YOLO, need_annotation: bool):
         )
         return world_model, annotatored_frame
     else:
-        return world_model
+        return world_model, frame

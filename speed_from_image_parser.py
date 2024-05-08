@@ -62,8 +62,9 @@ def get_speed(frame):
     count /= 4.0 * 10.0 / 7
 
     cv2.imshow("speed", speed_frame)
-    # cv2.imshow("speed_detected", speed_img)
-    return count
+
+    rounded_count = float(round(count / 2) * 2)
+    return rounded_count
 
 
 # test = cv2.imread("test_lesser_50.png")
