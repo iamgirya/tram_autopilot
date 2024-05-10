@@ -100,9 +100,9 @@ def implementation_of_decision(state, speed):
             long_press("y", 1)
             sleep(1)
         sleep(0.5)
-        press("num 1")
-        sleep(30)
-        press("num 3")
+        press("p")
+        sleep(15)
+        press("l")
         sleep(3)
         press("a")
         acceleration_level = 0

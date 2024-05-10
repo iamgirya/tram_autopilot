@@ -34,7 +34,7 @@ def make_decision(new_model: YoloWorldModel, speed: float):
             range_to_obstacle = math.sqrt(
                 obstacle.x * obstacle.x + obstacle.y * obstacle.y
             )
-            if abs(obstacle.x) <= 0.3 and range_to_obstacle <= 1.5:
+            if abs(obstacle.x) <= 0.3 and range_to_obstacle <= 0.6:
                 return True
         return False
 

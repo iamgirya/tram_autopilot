@@ -72,7 +72,7 @@ def get_speed(frame):
                 count += 1
 
     count *= 0.2675
-    count /= 4.0 * 10.0 / 7 * 3
+    count /= 4.0 * 10.0 / 7 / 3 * 2
 
     cv2.imshow("speed", speed_frame)
 
