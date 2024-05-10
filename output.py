@@ -2,7 +2,6 @@ import keyboard
 import mouse
 import win32api, win32con
 from time import sleep
-from decision_module import TramState
 
 
 def move_mouse(dx, dy):
@@ -56,66 +55,3 @@ def set_up_camera():
 
 def init_output():
     keyboard.add_hotkey("ctrl+w", lambda: set_up_camera())
-
-
-acceleration_level = 0
-
-
-def implementation_of_decision(state, speed):
-    global acceleration_level
-    lower_move_speed = 10
-    upper_move_speed = 15
-
-    if state == TramState.move:
-        if lower_move_speed <= speed <= upper_move_speed:
-            press("a")
-            acceleration_level = 0
-        elif lower_move_speed > speed and acceleration_level < 20:
-            long_press("q")
-            acceleration_level += 1
-        elif speed > upper_move_speed:
-            long_press("y")
-            acceleration_level -= 1
-    elif state == TramState.stop:
-        if lower_move_speed <= speed:
-            if acceleration_level > 0:
-                press("a")
-            long_press("y", 0.1)
-            acceleration_level -= 2
-        else:
-            if acceleration_level < -10:
-                press("a")
-            else:
-                long_press("y")
-                acceleration_level -= 1
-    elif state == TramState.wait:
-        if speed > 0:
-            long_press("y")
-            acceleration_level -= 1
-        else:
-            press("a")
-            acceleration_level = 0
-    elif state == TramState.boarding:
-        if speed > 0:
-            long_press("y", 1)
-            sleep(1)
-        sleep(0.5)
-        press("p")
-        sleep(15)
-        press("l")
-        sleep(3)
-        press("a")
-        acceleration_level = 0
-    elif state == TramState.fast_stop:
-        # TODO аварийный тормоз заюзать?
-        if speed != 0:
-            if acceleration_level > 0:
-                press("a")
-                acceleration_level = 0
-            long_press("y", 0.3)
-            acceleration_level -= 6
-        else:
-            press("a")
-            acceleration_level = 0
-
-    print("acceleration_level = " + str(acceleration_level))

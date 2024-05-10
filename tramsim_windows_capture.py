@@ -67,14 +67,18 @@ def main_loop():
         )
         lock.release()
         speed_value = speed_from_memory.get_speed()
+        acceleration_value = speed_from_memory.get_acceleration()
 
         # cv2.imshow("yolo_frame", yolo_frame)
-        print("speed = " + str(speed_value))
+        # print("speed = " + str(speed_value))
+        # print("acceleration = " + str(acceleration_value))
         # 2. Принятие решения
         state = decision_module.make_decision(world_model, speed_value)
         print("state = " + str(state))
         # 3. Реализация решения
-        output.implementation_of_decision(state, speed_value)
+        decision_module.implementation_of_decision(
+            state, speed_value, acceleration_value
+        )
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()

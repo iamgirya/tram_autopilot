@@ -1,6 +1,8 @@
 from yolo_predict import YoloWorldModel
 from enum import Enum
 import math
+from output import press, long_press
+from time import sleep
 
 
 # есть состояния: ехать (стандартное), резко_остановиться(когда детектим проблему),
@@ -73,3 +75,49 @@ def make_decision(new_model: YoloWorldModel, speed: float):
             tram_state = TramState.wait
 
     return end_make_decision()
+
+
+def implementation_of_decision(state, speed, acceleration):
+    max_acceleration = 100
+    stop_move_speed = 5
+    lower_move_speed = 20
+    upper_move_speed = 25
+
+    if state == TramState.move:
+        if lower_move_speed <= speed <= upper_move_speed:
+            if speed <= (upper_move_speed + lower_move_speed) / 2:
+                if acceleration > max_acceleration / 4:
+                    long_press("y")
+            else:
+                press("a")
+        elif lower_move_speed > speed and acceleration < max_acceleration:
+            long_press("q")
+        elif speed > upper_move_speed:
+            long_press("y")
+    elif state == TramState.stop:
+        if stop_move_speed <= speed:
+            if acceleration > 0:
+                press("a")
+            long_press("y")
+        else:
+            if acceleration < -max_acceleration / 4:
+                press("a")
+            else:
+                long_press("y")
+    elif state == TramState.wait:
+        if speed > 0:
+            long_press("y")
+        else:
+            press("a")
+    elif state == TramState.boarding:
+        if speed > 0:
+            press("a")
+            long_press("y", 1)
+            sleep(3)
+        press("p")
+        sleep(15)
+        press("l")
+        sleep(3)
+        press("a")
+    elif state == TramState.fast_stop:
+        long_press("x")

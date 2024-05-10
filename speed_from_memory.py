@@ -3,8 +3,12 @@ from pymem.process import *
 from pymem.ptypes import RemotePointer
 
 mem = Pymem("TramSimVienna-Win64-Shipping.exe")
-offsets = [0x28, 0x508, 0x10, 0x260, 0x12C]
-base_offset = 0x04B6F410
+# offsets = [0x28, 0x508, 0x10, 0x260, 0x12C] переменная со значением спидометра
+# base_offset = 0x04B6F410
+speed_offsets = [0xD8, 0x1A0, 0x470, 0xA0, 0x380]  # переменная со значением скорости
+speed_base_offset = 0x047DE9E0
+acceleration_offsets = [0x28, 0x508, 0x10, 0x3B0, 0x90]
+acceleration_base_offset = 0x04B6F410
 
 
 def getPtrAddr(base, offsets):
@@ -19,11 +23,18 @@ def getPtrAddr(base, offsets):
 
 
 def get_speed():
-    return mem.read_int(getPtrAddr(mem.base_address + base_offset, offsets))
+    return (
+        mem.read_float(getPtrAddr(mem.base_address + speed_base_offset, speed_offsets))
+        * 0.0357
+    )
 
 
-# Значение скорости, которое может влиять на трамвай
-# getPtrAddr(mem.base_address + 0x047DE9E0, [0xD8, 0x1A0, 0x470, 0xA0, 0x380])
-# formatted_speed = speed // 1000000
-# formatted_speed = 250 / (1155 - formatted_speed)
-# formatted_speed = 0 if formatted_speed <= 0 else formatted_speed
+def get_acceleration():
+    return (
+        mem.read_float(
+            getPtrAddr(
+                mem.base_address + acceleration_base_offset, acceleration_offsets
+            )
+        )
+        / 4.16
+    )
