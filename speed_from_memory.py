@@ -18,7 +18,7 @@ def getPtrAddr(base, offsets):
             return remote_pointer.value + offset
 
 
-def get_speed_from_memory():
+def get_speed():
     return mem.read_int(getPtrAddr(mem.base_address + base_offset, offsets))
 
 

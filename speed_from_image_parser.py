@@ -1,16 +1,7 @@
 import cv2
 import numpy as np
-from PIL import ImageGrab
-import time
-
-time.process_time()
-
-
-def wait(sec):
-    t = time.process_time()
-    while True:
-        if time.process_time() - t > sec:
-            break
+from time import sleep
+import output
 
 
 # def main_loop():
@@ -78,6 +69,14 @@ def get_speed(frame):
 
     rounded_count = float(round(count / 2) * 2)
     return rounded_count
+
+
+def get_speed_by_change_view(frameg):
+    output.open_cabine_view()
+    sleep(0.2)
+    speed_value = get_speed(frameg)
+    output.open_nose_view()
+    return speed_value
 
 
 # test = cv2.imread("test_lesser_50.png")
