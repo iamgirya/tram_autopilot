@@ -39,28 +39,40 @@ def use_yolo_with_annotator(frame, model: YOLO):
 
 
 class YoloWorldModel:
-    obstacles = []
-    range_to_stop = None
-    range_to_stoplight = None
-    stoplight_signal = False
+    def __init__(self):
+        self.obstacles = []
+        self.range_to_stop = None
+        self.range_to_stoplight = None
+        self.stoplight_signal = False
 
 
 class YoloObstacle:
-    x = 0.0
-    y = 0.0
-    name = ""
-    xyxy = None
+    def __init__(self, x, y, name, xyxy):
+        self.x = x
+        self.y = y
+        self.name = name
+        self.xyxy = xyxy
 
 
 def get_signal_from_stoplight_image(frame, bbox):
 
     signal_frame = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
+    if signal_frame.shape[0] <= 10 or signal_frame.shape[1] <= 10:
+        return True
 
     lower_color = np.array([200, 200, 200])
     upper_color = np.array([255, 255, 255])
     speed_hist = cv2.inRange(signal_frame, lower_color, upper_color)
     signal_frame = cv2.bitwise_and(signal_frame, signal_frame, mask=speed_hist)
     signal_frame = cv2.cvtColor(signal_frame, cv2.COLOR_RGB2GRAY)
+
+    pixel_count = 0
+    for i in range(signal_frame.shape[0]):
+        for j in range(signal_frame.shape[1]):
+            if signal_frame[i][j] != 0:
+                pixel_count += 1
+    if pixel_count <= 5:
+        return True
 
     kernel = np.ones((2, 2), np.uint8)
     signal_frame = cv2.morphologyEx(signal_frame, cv2.MORPH_OPEN, kernel, iterations=1)
@@ -94,7 +106,7 @@ def get_signal_from_stoplight_image(frame, bbox):
     width = abs(left - right)
     height = abs(top - bottom)
 
-    # cv2.imshow("signal frame", signal_frame)
+    cv2.imshow("signal frame", signal_frame)
 
     if width == 0 or height == 0:
         return False
@@ -146,11 +158,9 @@ def use_yolo_with_model(frame, model: YOLO, need_annotation: bool):
                     angle = angle + fov / 2
 
                 # получили полярные коррдинаты angle, distance, переводим в декартовы
-                new_obstacle = YoloObstacle()
-                new_obstacle.x = distance * math.cos(angle + math.pi / 4)
-                new_obstacle.y = distance * math.sin(angle + math.pi / 4)
-                new_obstacle.name = box_name
-                new_obstacle.xyxy = box_borders
+                x = distance * math.cos(angle + math.pi / 4)
+                y = distance * math.sin(angle + math.pi / 4)
+                new_obstacle = YoloObstacle(x, y, box_name, box_borders)
                 world_model.obstacles.append(new_obstacle)
 
                 if need_annotation:

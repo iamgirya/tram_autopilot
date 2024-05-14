@@ -2,7 +2,7 @@ from yolo_predict import YoloWorldModel
 from enum import Enum
 import math
 from output import press, long_press
-from time import sleep
+from time import sleep, process_time
 
 
 # есть состояния: ехать (стандартное), резко_остановиться(когда детектим проблему),
@@ -10,19 +10,22 @@ from time import sleep
 # ждать (смотрим на светофор и ждём разрешающего)
 class TramState(Enum):
     move = 1
-    stop = 2
-    fast_stop = 3
-    wait = 4
+    fast_stop = 2
+    stoplight_wait = 3
+    fast_move = 4
     boarding = 5
+    boarding_stop = 6
 
 
 prev_model = None
 prev_state = TramState.move
+moving_timer = process_time()
+stop_timer = process_time()
 
 
 # определяет на основе новых данных о мире, что должен делать трамвай и возвращает состояние
 def make_decision(new_model: YoloWorldModel, speed: float):
-    global prev_model, prev_state
+    global prev_model, prev_state, moving_timer, stop_timer
     tram_state = prev_state
 
     def end_make_decision():
@@ -40,53 +43,87 @@ def make_decision(new_model: YoloWorldModel, speed: float):
                 return True
         return False
 
+    now_time = process_time()
+    objects_count = len(new_model.obstacles)
     # если трамвай ехал
-    if prev_state == TramState.move:
+    if prev_state == TramState.move or prev_state == TramState.fast_move:
         if check_obstacles():
             tram_state = TramState.fast_stop
         # и увидел кружок остановки
         elif new_model.range_to_stop != None:
-            tram_state = TramState.stop
+            tram_state = TramState.boarding_stop
+            stop_timer = process_time()
         # и увидел светофор с сигналом остановки
-        elif new_model.range_to_stoplight != None and new_model.stoplight_signal:
-            tram_state = TramState.stop
-    # если трамвай останавливался
-    elif prev_state == TramState.stop:
-        # и перестал видеть знак остановки
-        if prev_model.range_to_stop != None and new_model.range_to_stop == None:
+        elif new_model.range_to_stoplight != None and not new_model.stoplight_signal:
+            tram_state = TramState.stoplight_wait
+            stop_timer = process_time()
+        # и рядом мало объектов и трамвай едет несколько секунд
+        elif now_time - moving_timer >= 5.0:
+            tram_state = TramState.fast_move
+        else:
+            tram_state = TramState.move
+    # если трамвай останавливался перед остановкой
+    elif prev_state == TramState.boarding_stop:
+        # и перестал видеть знак остановки, когда тот был близко
+        if (
+            prev_model.range_to_stop != None
+            and prev_model.range_to_stop <= 5.0
+            and new_model.range_to_stop == None
+        ):
             tram_state = TramState.boarding
-        # и успел остановиться
-        elif speed <= 1:
-            tram_state = TramState.wait
-    # если трамвай ждёт
-    elif prev_state == TramState.wait:
-        # и перестал видеть знак остановки на светофоре
-        if not new_model.stoplight_signal:
+        # и трамвай уж больно долго ждёт окончания остановки
+        elif now_time - stop_timer > 10:
+            tram_state = TramState.move
+    # если трамвай ждёт светофор
+    elif prev_state == TramState.stoplight_wait:
+        # и видит разрешающий сигнал на светофоре
+        if (
+            new_model.range_to_stoplight != None
+            and new_model.stoplight_signal
+            and prev_model.range_to_stoplight != None
+            and prev_model.stoplight_signal
+        ):
+            tram_state = TramState.move
+        # и потерял светофор долгое время
+        elif (
+            new_model.range_to_stoplight == None
+            and prev_model.range_to_stoplight == None
+            and now_time - stop_timer > 5
+        ):
             tram_state = TramState.move
     # если трамвай на посадке
     elif prev_state == TramState.boarding:
         # так как это состояние скриптованное, то в следующем кадре мы сразу знаем, что посадка завершилась
-        tram_state = TramState.wait
+        tram_state = TramState.move
     # если трамвай резко остановился и больше этого не требуется
     elif prev_state == TramState.fast_stop:
         if check_obstacles():
             tram_state = TramState.fast_stop
         elif speed == 0:
-            tram_state = TramState.wait
+            tram_state = TramState.move
+
+    if (
+        tram_state != TramState.move
+        and tram_state != TramState.fast_move
+        or objects_count >= 4
+    ):
+        moving_timer = process_time()
 
     return end_make_decision()
 
 
 def implementation_of_decision(state, speed, acceleration):
     max_acceleration = 100
-    stop_move_speed = 5
-    lower_move_speed = 20
-    upper_move_speed = 25
+    stop_move_speed = 3
+    lower_move_speed = 10
+    upper_move_speed = 15
 
-    if state == TramState.move:
+    if state == TramState.move or state == TramState.fast_move:
+        if state == TramState.fast_move:
+            speed /= 2
         if lower_move_speed <= speed <= upper_move_speed:
             if speed <= (upper_move_speed + lower_move_speed) / 2:
-                if acceleration > max_acceleration / 4:
+                if acceleration > max_acceleration / 3:
                     long_press("y")
             else:
                 press("a")
@@ -94,24 +131,22 @@ def implementation_of_decision(state, speed, acceleration):
             long_press("q")
         elif speed > upper_move_speed:
             long_press("y")
-    elif state == TramState.stop:
+    elif state == TramState.boarding_stop:
+        if acceleration > 0:
+            press("a")
         if stop_move_speed <= speed:
-            if acceleration > 0:
-                press("a")
             long_press("y")
         else:
-            if acceleration < -max_acceleration / 4:
-                press("a")
-            else:
-                long_press("y")
-    elif state == TramState.wait:
+            press("a")
+            # TODO акселерацию другую прикрутить, с минусом
+    elif state == TramState.stoplight_wait:
         if speed > 0:
             long_press("y")
         else:
             press("a")
     elif state == TramState.boarding:
+        press("a")
         if speed > 0:
-            press("a")
             long_press("y", 1)
             sleep(3)
         press("p")

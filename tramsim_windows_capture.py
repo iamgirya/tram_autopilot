@@ -55,6 +55,7 @@ def main_loop():
     capture.start_free_threaded()
     sleep(1)
 
+    old_state = None
     while True:
         if GetWindowText(GetForegroundWindow()) != "TramSim  ":
             sleep(1)
@@ -69,12 +70,14 @@ def main_loop():
         speed_value = speed_from_memory.get_speed()
         acceleration_value = speed_from_memory.get_acceleration()
 
-        # cv2.imshow("yolo_frame", yolo_frame)
+        cv2.imshow("yolo_frame", yolo_frame)
         # print("speed = " + str(speed_value))
         # print("acceleration = " + str(acceleration_value))
         # 2. Принятие решения
         state = decision_module.make_decision(world_model, speed_value)
-        print("state = " + str(state))
+        if old_state != state:
+            print("state = " + str(state))
+        old_state = state
         # 3. Реализация решения
         decision_module.implementation_of_decision(
             state, speed_value, acceleration_value

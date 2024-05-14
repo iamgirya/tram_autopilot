@@ -15,12 +15,12 @@ def move_mouse(dx, dy):
 
 
 def press(key: str):
-    print(key)
+    # print(key)
     keyboard.press_and_release(key)
 
 
 def long_press(key: str, time=0.1):
-    print(key)
+    # print(key)
     keyboard.press(key)
     sleep(time)
     keyboard.release(key)
