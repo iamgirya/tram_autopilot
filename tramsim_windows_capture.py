@@ -50,9 +50,9 @@ def on_closed():
 def main_loop():
     # 0. Инициализация
     model = yolo_predict.init_yolo()
+    capture.start_free_threaded()
     output.init_output()
     output.set_up_camera()
-    capture.start_free_threaded()
     sleep(1)
 
     old_state = None

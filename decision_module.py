@@ -39,12 +39,21 @@ def make_decision(new_model: YoloWorldModel, speed: float):
             range_to_obstacle = math.sqrt(
                 obstacle.x * obstacle.x + obstacle.y * obstacle.y
             )
-            if abs(obstacle.x) <= 0.3 and range_to_obstacle <= 0.6:
+            if abs(obstacle.x) <= 0.3 and range_to_obstacle <= 0.9:
                 return True
         return False
 
+    def calculate_near_object_count():
+        count = 0
+        for obstacle in new_model.obstacles:
+            range_to_obstacle = math.sqrt(
+                obstacle.x * obstacle.x + obstacle.y * obstacle.y
+            )
+            if range_to_obstacle <= 10:
+                count += 1
+        return count
+
     now_time = process_time()
-    objects_count = len(new_model.obstacles)
     # если трамвай ехал
     if prev_state == TramState.move or prev_state == TramState.fast_move:
         if check_obstacles():
@@ -72,7 +81,7 @@ def make_decision(new_model: YoloWorldModel, speed: float):
         ):
             tram_state = TramState.boarding
         # и трамвай уж больно долго ждёт окончания остановки
-        elif now_time - stop_timer > 10:
+        elif now_time - stop_timer > 5:
             tram_state = TramState.move
     # если трамвай ждёт светофор
     elif prev_state == TramState.stoplight_wait:
@@ -84,13 +93,17 @@ def make_decision(new_model: YoloWorldModel, speed: float):
             and prev_model.stoplight_signal
         ):
             tram_state = TramState.move
-        # и потерял светофор долгое время
+        # и потерял светофор на долгое время
         elif (
             new_model.range_to_stoplight == None
             and prev_model.range_to_stoplight == None
             and now_time - stop_timer > 5
         ):
             tram_state = TramState.move
+        # и увидел кружочек остановки
+        elif new_model.range_to_stop != None:
+            tram_state = TramState.boarding_stop
+            stop_timer = process_time()
     # если трамвай на посадке
     elif prev_state == TramState.boarding:
         # так как это состояние скриптованное, то в следующем кадре мы сразу знаем, что посадка завершилась
@@ -105,7 +118,7 @@ def make_decision(new_model: YoloWorldModel, speed: float):
     if (
         tram_state != TramState.move
         and tram_state != TramState.fast_move
-        or objects_count >= 4
+        or calculate_near_object_count() >= 3
     ):
         moving_timer = process_time()
 

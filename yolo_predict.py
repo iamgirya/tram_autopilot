@@ -55,6 +55,7 @@ class YoloObstacle:
 
 
 def get_signal_from_stoplight_image(frame, bbox):
+    # TODO решить проблему с захватом буковок А
 
     signal_frame = frame[int(bbox[1]) : int(bbox[3]), int(bbox[0]) : int(bbox[2])]
     if signal_frame.shape[0] <= 10 or signal_frame.shape[1] <= 10:
@@ -71,7 +72,7 @@ def get_signal_from_stoplight_image(frame, bbox):
         for j in range(signal_frame.shape[1]):
             if signal_frame[i][j] != 0:
                 pixel_count += 1
-    if pixel_count <= 5:
+    if pixel_count <= 7:
         return True
 
     kernel = np.ones((2, 2), np.uint8)
@@ -118,12 +119,29 @@ def get_signal_from_stoplight_image(frame, bbox):
         return False
 
 
-def use_yolo_with_model(frame, model: YOLO, need_annotation: bool):
-    frame = np.array(frame)
+fov = math.pi / 2  # пусть fov будет 90 градусов
+fov_local_height = math.sqrt(1 / (2 * (1 - math.cos(fov))) - 0.25)
+
+
+def get_object_angle(frame, box_borders):
+    global fov, fov_local_height
+    mid_coords = (box_borders[2] + box_borders[0]) / 2.0
+    mid_of_frame = frame.shape[1] / 2.0
+
+    tg_of_angle = (abs(mid_of_frame - mid_coords) / frame.shape[1]) / fov_local_height
+    angle = math.atan(tg_of_angle)
+    if mid_coords >= mid_of_frame:
+        angle = fov / 2 - angle
+    else:
+        angle = angle + fov / 2
+
+    return angle
+
+
+def use_yolo_with_model(input_frame, model: YOLO, need_annotation: bool):
+    frame = np.array(input_frame)
 
     results = model.predict(source=frame, save=False, verbose=False)
-    fov = math.pi / 2  # пусть fov будет 90 градусов
-    fov_local_height = math.sqrt(1 / (2 * (1 - math.cos(fov))) - 0.25)
     world_model = YoloWorldModel()
     for r in results:
         annotator = Annotator(frame)
@@ -145,17 +163,7 @@ def use_yolo_with_model(frame, model: YOLO, need_annotation: bool):
                 now_object_size = box_borders[3] - box_borders[1]
                 distance = max_object_size / now_object_size
 
-                mid_coords = (box_borders[2] + box_borders[0]) / 2.0
-                mid_of_frame = frame.shape[1] / 2.0
-
-                tg_of_angle = (
-                    abs(mid_of_frame - mid_coords) / frame.shape[1]
-                ) / fov_local_height
-                angle = math.atan(tg_of_angle)
-                if mid_coords >= mid_of_frame:
-                    angle = fov / 2 - angle
-                else:
-                    angle = angle + fov / 2
+                angle = get_object_angle(frame, box_borders)
 
                 # получили полярные коррдинаты angle, distance, переводим в декартовы
                 x = distance * math.cos(angle + math.pi / 4)
@@ -171,6 +179,10 @@ def use_yolo_with_model(frame, model: YOLO, need_annotation: bool):
                         + str(np.round(new_obstacle.y, 1)),
                     )
             elif box_name == "stopcircle":
+                angle = get_object_angle(frame, box_borders)
+                if angle >= math.pi * 3 / 8 or angle <= math.pi / 8:
+                    continue
+
                 distance_to_end = (
                     (frame.shape[0] - box_borders[3]) / frame.shape[0] * 100
                 )
