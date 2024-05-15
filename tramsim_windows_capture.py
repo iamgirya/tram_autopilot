@@ -1,14 +1,7 @@
-from windows_capture import WindowsCapture, Frame, InternalCaptureControl
 from win32gui import GetWindowText, GetForegroundWindow
-from time import sleep, time
-import numpy as np
-import cv2
+from windows_capture import WindowsCapture, Frame, InternalCaptureControl
+from time import sleep
 import threading
-import yolo_predict
-import output
-import speed_from_memory
-import decision_module
-
 
 # Every Error From on_closed and on_frame_arrived Will End Up Here
 capture = WindowsCapture(
@@ -18,7 +11,6 @@ capture = WindowsCapture(
     window_name="TramSim  ",
 )
 
-# time1 = time()
 frameg = []
 lock = threading.Lock()
 
@@ -27,9 +19,6 @@ lock = threading.Lock()
 @capture.event
 def on_frame_arrived(frame: Frame, capture_control: InternalCaptureControl):
     global frameg, lock, time1
-    sleep(0)
-    # print("New Frame Arrived " + str(time() - time1))
-    # time1 = time()
 
     # Тут происходит потеря данных при передаче между потоками данных при записи в файл, но на видео всё норм
     # frame.save_as_image("lol1.jpg")
@@ -47,46 +36,14 @@ def on_closed():
     print("Capture Session Closed")
 
 
-def main_loop():
-    # 0. Инициализация
-    model = yolo_predict.init_yolo()
+def init_capture():
+    global lock
     capture.start_free_threaded()
-    output.init_output()
-    output.set_up_camera()
-    sleep(1)
-
-    old_state = None
-    while True:
-        if GetWindowText(GetForegroundWindow()) != "TramSim  ":
-            sleep(1)
-            continue
-
-        # 1. Сбор данных и получение модели
-        lock.acquire()
-        world_model, yolo_frame = yolo_predict.use_yolo_with_model(
-            frameg, model, need_annotation=True
-        )
-        lock.release()
-        speed_value = speed_from_memory.get_speed()
-        acceleration_value = speed_from_memory.get_acceleration()
-
-        cv2.imshow("yolo_frame", yolo_frame)
-        # print("speed = " + str(speed_value))
-        # print("acceleration = " + str(acceleration_value))
-        # 2. Принятие решения
-        state = decision_module.make_decision(world_model, speed_value)
-        if old_state != state:
-            print("state = " + str(state))
-        old_state = state
-        # 3. Реализация решения
-        decision_module.implementation_of_decision(
-            state, speed_value, acceleration_value
-        )
-
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            cv2.destroyAllWindows()
-            break
+    return lock
 
 
-# Код
-main_loop()
+def get_frame():
+    global frameg
+    while GetWindowText(GetForegroundWindow()) != "TramSim  ":
+        sleep(1)
+    return frameg

@@ -1,13 +1,9 @@
 from windows_capture import WindowsCapture, Frame, InternalCaptureControl
 from win32gui import GetWindowText, GetForegroundWindow
-from time import sleep, time
-import numpy as np
+from time import sleep
 import cv2
 import threading
-import yolo_predict
-import output
-import speed_from_image_parser
-import decision_module
+import trash.speed_from_image_parser as speed_from_image_parser
 
 
 # Every Error From on_closed and on_frame_arrived Will End Up Here

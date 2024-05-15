@@ -1,9 +1,7 @@
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
-from PIL import Image
 import cv2
 import numpy as np
-from PIL import ImageGrab
 import time
 import math
 
