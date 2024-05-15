@@ -1,7 +1,7 @@
 from yolo_predict import YoloWorldModel
 from enum import Enum
 import math
-from output import press, long_press
+from output import *
 from time import sleep, process_time
 
 
@@ -46,7 +46,7 @@ def make_decision(new_model: YoloWorldModel, speed: float):
             range_to_obstacle = math.sqrt(
                 obstacle.x * obstacle.x + obstacle.y * obstacle.y
             )
-            if range_to_obstacle <= 10:
+            if range_to_obstacle <= 10 or obstacle.name == "person":
                 count += 1
         return count
 
@@ -137,18 +137,18 @@ def implementation_of_decision(state, speed, acceleration):
                     long_press("y")
             else:
                 press("a")
-        elif lower_move_speed > speed and acceleration < max_acceleration:
+        elif lower_move_speed > speed:
             long_press("q")
         elif speed > upper_move_speed:
             long_press("y")
     elif state == TramState.boarding_stop:
-        if acceleration > 0:
-            press("a")
         if stop_move_speed <= speed:
+            if acceleration > 0:
+                press("a")
             long_press("y")
         else:
-            press("a")
-            # TODO акселерацию другую прикрутить, с минусом
+            if acceleration <= max_acceleration / 4:
+                long_press("q")
     elif state == TramState.stoplight_wait:
         if speed > 0:
             long_press("y")
@@ -159,9 +159,11 @@ def implementation_of_decision(state, speed, acceleration):
         if speed > 0:
             long_press("y", 1)
             sleep(3)
+        open_body_view()
         press("p")
         sleep(15)
         press("l")
+        open_nose_view()
         sleep(3)
         press("a")
     elif state == TramState.fast_stop:

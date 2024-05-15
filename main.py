@@ -31,16 +31,17 @@ def main_loop():
         # print("speed = " + str(speed_value))
         # print("acceleration = " + str(acceleration_value))
 
-        # 2. Принятие решения
-        state = decision_module.make_decision(world_model, speed_value)
-        if old_state != state:
-            print("state = " + str(state))
-        old_state = state
+        if output.autopilot_work:
+            # 2. Принятие решения
+            state = decision_module.make_decision(world_model, speed_value)
+            if old_state != state:
+                print("state = " + str(state))
+            old_state = state
 
-        # 3. Реализация решения
-        decision_module.implementation_of_decision(
-            state, speed_value, acceleration_value
-        )
+            # 3. Реализация решения
+            decision_module.implementation_of_decision(
+                state, speed_value, acceleration_value
+            )
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyAllWindows()
