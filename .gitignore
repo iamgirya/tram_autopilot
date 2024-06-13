@@ -18,6 +18,7 @@ runs/
 trash/
 .eggs/
 lib/
+files/
 lib64/
 parts/
 sdist/

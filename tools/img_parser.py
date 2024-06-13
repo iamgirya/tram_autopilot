@@ -1,15 +1,19 @@
-path = "datasets/tram_sim/images"
+path = "files"
 size = 640
 
 import os, sys
 from PIL import Image
+import numpy as np
 
 
 files = os.listdir(path)
 for file in files:
-    base_h = 640
-    img = Image.open(path + "/" + file)
-    wpercent = base_h / float(img.size[1])
-    wsize = int((float(img.size[0]) * float(wpercent)))
-    img = img.resize((wsize, base_h), Image.Resampling.LANCZOS)
-    img.save(path + "/" + file)
+    sub = Image.open(path + "/" + file)
+    sub = sub.convert("RGB")
+    data = np.array(sub)
+    red, green, blue = data.T
+    data = np.array([blue, green, red])
+    data = data.transpose()
+    sub = Image.fromarray(data)
+
+    sub.save(path + "/" + file)
